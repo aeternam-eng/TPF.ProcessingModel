@@ -29,7 +29,14 @@ stages:
               addToPath: true
               architecture: "x64"
 
+          - task: Cache@2
+            inputs:
+              key: 'ai-model'
+              path: '$(System.ArtifactsDirectory)'
+              cacheHitVar: 'hasAiModel'
+
           - task: DownloadPackage@1
+            enabled: not(variables.hasAiModel)
             inputs:
               packageType: 'upack'
               feed: '/e1ea829c-6ca3-4442-9e79-b9d06a6782f7'
