@@ -27,9 +27,11 @@ stages:
       
         steps:
           - task: UsePythonVersion@0
+            name: pyVersion
             inputs:
-              versionSpec: '$(pythonVersion)'
-            displayName: 'Use Python $(pythonVersion)'
+              versionSpec: $(pythonVersion)
+              addToPath: true
+              architecture: "x64"
 
           - script: |
               python -m venv tpf
