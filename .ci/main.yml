@@ -44,7 +44,7 @@ stages:
               SourceFolder: "$(System.ArtifactsDirectory)"
               Contents: "*.h5"
               TargetFolder: $(buildDirectory)
-              CleanTargetFolder: false
+              CleanTargetFolder: true
 
           - task: CopyFiles@2
             displayName: Copy api files
@@ -70,11 +70,34 @@ stages:
               archiveType: zip
               archiveFile: $(outputZipDir)
               replaceExistingArchive: true
+              
+          - upload: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+            displayName: 'Upload package'
+            artifact: drop
 
-          - task: AzureWebApp@1
-            displayName: 'Deploy Azure Web App : tpf-processingmodel'
-            inputs:
-              appType: webAppLinux
-              azureSubscription: $(azureServiceConnectionId)
-              appName: $(webAppName)
-              package: $(outputZipDir)
+  - stage: deploy
+    displayName: 'Deploy Web App'
+    dependsOn: Build
+    condition: succeeded()
+    jobs:
+      - deployment: DeploymentJob
+        pool:
+          name: Azure.Pool.Stronzo
+        environment: $(environmentName)
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: UsePythonVersion@0
+                  name: pyVersion
+                  inputs:
+                    versionSpec: $(pythonVersion)
+                    addToPath: true
+                    architecture: "x64"
+                - task: AzureWebApp@1
+                  displayName: 'Deploy Azure Web App : tpf-processingmodel'
+                  inputs:
+                    appType: webAppLinux
+                    azureSubscription: $(azureServiceConnectionId)
+                    appName: $(webAppName)
+                    package: $(outputZipDir)
