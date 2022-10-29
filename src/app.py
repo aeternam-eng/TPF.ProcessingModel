@@ -1,6 +1,5 @@
 from flask import Flask, request
 import numpy as np
-import keras 
 import tflite_runtime.interpreter as tflite
 from PIL import Image
 
@@ -19,7 +18,7 @@ def fire_probability():
     img = Image.open(file.stream)
     img = img.resize((224,224),Image.ANTIALIAS)
 
-    x = keras.utils.img_to_array(img)
+    x = np.array(img)
     x = np.expand_dims(x, axis=0) /255
 
     classes = model.predict(x)
