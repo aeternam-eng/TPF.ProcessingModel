@@ -71,7 +71,7 @@ stages:
               archiveFile: $(outputZipDir)
               replaceExistingArchive: true
               
-          - upload: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+          - upload: $$(outputZipDir)
             displayName: 'Upload package'
             artifact: drop
 
