@@ -70,7 +70,7 @@ stages:
               archiveFile: $(outputZipDir)
               replaceExistingArchive: true
               
-          - upload: $$(outputZipDir)
+          - upload: $(outputZipDir)
             displayName: 'Upload package'
             artifact: drop
 
