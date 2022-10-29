@@ -7,6 +7,10 @@ from PIL import Image
 app = Flask(__name__)
 
 @app.route('/', methods=['POST'])
+def health_check():
+    return { "running": True }
+
+@app.route('/api/analysis', methods=['POST'])
 def fire_probability():
     model = tf.keras.models.load_model('./InceptionV3.h5')
 
@@ -21,7 +25,10 @@ def fire_probability():
     classes = model.predict(x)
     result = np.argmax(classes[0])==0, max(classes[0])
 
-    return{ "isFogoBixo" : bool(result[0]), "probability" : float(result[1]) }
+    return { 
+        "isFogoBixo": bool(result[0]),
+        "probability": float(result[1])
+    }
 
 if __name__ == '__main__':
     app.run()

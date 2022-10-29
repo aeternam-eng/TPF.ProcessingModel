@@ -4,16 +4,12 @@ trigger:
       - main
 
 variables:
-  # Azure Resource Manager connection created during pipeline creation
   azureServiceConnectionId: 'cd6de276-3a5b-458d-8edf-ea0907e684ca'
-
-  # Web app name
   webAppName: 'tpf-processingmodel'
   environmentName: 'tpf-processingmodel'
 
-  # Project root folder. Point to the folder containing manage.py file.
   pythonVersion: '3.10'
-
+  buildDirectory: '$(Build.ArtifactStagingDirectory)/build'
   outputZipDir: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
 
 stages:
@@ -33,15 +29,6 @@ stages:
               addToPath: true
               architecture: "x64"
 
-          - script: |
-              python -m venv tpf
-              source tpf/bin/activate
-              python -m pip install --upgrade pip
-              pip install setup
-              pip install -r requirements.txt
-            workingDirectory: $(Build.SourcesDirectory)
-            displayName: "Install requirements"
-
           - task: DownloadPackage@1
             inputs:
               packageType: 'upack'
@@ -49,28 +36,36 @@ stages:
               view: 
               definition: '7ea22459-192d-42c0-8f4b-5f1c26a7a9cf'
               version: '1.0.0'
-              downloadPath: '$(System.ArtifactsDirectory)'
+              downloadPath: $(System.ArtifactsDirectory)
 
           - task: CopyFiles@2
             displayName: Copy keras model
             inputs:
               SourceFolder: "$(System.ArtifactsDirectory)"
               Contents: "*.h5"
-              TargetFolder: "$(Build.ArtifactStagingDirectory)/build"
+              TargetFolder: $(buildDirectory)
               CleanTargetFolder: false
 
           - task: CopyFiles@2
             displayName: Copy api files
             inputs:
-              SourceFolder: "$(Build.SourcesDirectory)"
-              Contents: "api.py"
-              TargetFolder: "$(Build.ArtifactStagingDirectory)/build"
+              SourceFolder: "$(Build.SourcesDirectory)/src"
+              Contents: "**"
+              TargetFolder: $(buildDirectory)
               CleanTargetFolder: false
+
+          - script: |
+              python -m venv .venv
+              source .venv/bin/activate
+              python -m pip install --upgrade pip
+              pip install -r requirements.txt
+            workingDirectory: $(buildDirectory)
+            displayName: "Install requirements"
 
           - task: ArchiveFiles@2
             displayName: 'Archive files'
             inputs:
-              rootFolderOrFile: '$(Build.ArtifactStagingDirectory)/build'
+              rootFolderOrFile: $(buildDirectory)
               includeRootFolder: false
               archiveType: zip
               archiveFile: $(outputZipDir)
