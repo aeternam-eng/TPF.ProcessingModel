@@ -6,7 +6,6 @@ trigger:
 variables:
   azureServiceConnectionId: 'cd6de276-3a5b-458d-8edf-ea0907e684ca'
   webAppName: 'tpf-processingmodel'
-
   pythonVersion: '3.9'
   buildDirectory: '$(Build.ArtifactStagingDirectory)/build'
   outputZipDir: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
@@ -103,10 +102,11 @@ stages:
             artifact: drop
             displayName: "Download build artifacts"
           
-          - task: AzureWebApp@1
-            displayName: 'Deploy Azure Web App : tpf-processingmodel'
+          - task: AzureRmWebAppDeployment@4
             inputs:
-              appType: webAppLinux
-              azureSubscription: $(azureServiceConnectionId)
-              appName: $(webAppName)
-              package: $(downloadedPackageDirectory)
+              ConnectionType: AzureRM
+              azureSubscription: 'Azure para Estudantes (26956325-be9b-439d-b44f-c8a6540154e2)'
+              appType: 'webAppLinux'
+              DeploymentType: zipDeploy
+              WebAppName: 'stronzo-tapegandofogo-processingmodel-dev'
+              packageForLinux: '$(downloadedPackageDirectory)'
