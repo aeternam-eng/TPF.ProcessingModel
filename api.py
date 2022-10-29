@@ -22,4 +22,6 @@ def fire_probability():
     result = np.argmax(classes[0])==0, max(classes[0])
 
     return{ "isFogoBixo" : bool(result[0]), "probability" : float(result[1]) }
-app.run()
+
+if __name__ == '__main__':
+    app.run()

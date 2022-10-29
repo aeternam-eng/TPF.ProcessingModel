@@ -3,6 +3,19 @@ trigger:
     include:
       - main
 
+variables:
+  # Azure Resource Manager connection created during pipeline creation
+  azureServiceConnectionId: 'cd6de276-3a5b-458d-8edf-ea0907e684ca'
+
+  # Web app name
+  webAppName: 'tpf-processingmodel'
+  environmentName: 'tpf-processingmodel'
+
+  # Project root folder. Point to the folder containing manage.py file.
+  pythonVersion: '3.10'
+
+  outputZipDir: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+
 stages:
   - stage: "build"
     displayName: "Build"
@@ -13,17 +26,58 @@ stages:
           name: Azure.Pool.Stronzo
       
         steps:
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: '$(pythonVersion)'
+            displayName: 'Use Python $(pythonVersion)'
+
+          - script: |
+              python -m venv tpf
+              source tpf/bin/activate
+              python -m pip install --upgrade pip
+              pip install setup
+              pip install -r requirements.txt
+            workingDirectory: $(Build.SourcesDirectory)
+            displayName: "Install requirements"
+
+          - task: DownloadPackage@1
+            inputs:
+              packageType: 'upack'
+              feed: '/e1ea829c-6ca3-4442-9e79-b9d06a6782f7'
+              view: 
+              definition: '7ea22459-192d-42c0-8f4b-5f1c26a7a9cf'
+              version: '1.0.0'
+              downloadPath: '$(System.ArtifactsDirectory)'
+
+          - task: CopyFiles@2
+            displayName: Copy keras model
+            inputs:
+              SourceFolder: "$(System.ArtifactsDirectory)"
+              Contents: "*.h5"
+              TargetFolder: "$(Build.ArtifactStagingDirectory)/build"
+              CleanTargetFolder: false
+
           - task: CopyFiles@2
             displayName: Copy api files
             inputs:
               SourceFolder: "$(Build.SourcesDirectory)"
               Contents: "api.py"
               TargetFolder: "$(Build.ArtifactStagingDirectory)/build"
-              CleanTargetFolder: true
-            
-          - task: PublishBuildArtifacts@1
-            displayName: Publish
+              CleanTargetFolder: false
+
+          - task: ArchiveFiles@2
+            displayName: 'Archive files'
             inputs:
-              PathtoPublish: "$(Build.ArtifactStagingDirectory)/build"
-              ArtifactName: "$(Build.Repository.Name)-$(Build.BuildNumber)"
-              publishLocation: "Container"
+              rootFolderOrFile: '$(Build.ArtifactStagingDirectory)/build'
+              includeRootFolder: false
+              archiveType: zip
+              archiveFile: $(outputZipDir)
+              replaceExistingArchive: true
+
+          - task: AzureWebApp@1
+            displayName: 'Deploy Azure Web App : tpf-processingmodel'
+            inputs:
+              appType: webAppLinux
+              azureSubscription: $(azureServiceConnectionId)
+              appName: $(webAppName)
+              package: $(outputZipDir)
