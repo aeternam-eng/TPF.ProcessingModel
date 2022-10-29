@@ -32,7 +32,7 @@ stages:
           - task: Cache@2
             inputs:
               key: 'ai-model'
-              path: '$(System.ArtifactsDirectory)'
+              path: '$(System.ArtifactsDirectory)/model'
               cacheHitVar: 'hasAiModel'
 
           - task: DownloadPackage@1
@@ -43,12 +43,12 @@ stages:
               view: 
               definition: '7ea22459-192d-42c0-8f4b-5f1c26a7a9cf'
               version: '1.0.1'
-              downloadPath: $(System.ArtifactsDirectory)
+              downloadPath: $(System.ArtifactsDirectory)/model
 
           - task: CopyFiles@2
             displayName: Copy keras model
             inputs:
-              SourceFolder: "$(System.ArtifactsDirectory)"
+              SourceFolder: "$(System.ArtifactsDirectory)/model"
               Contents: "*.tflite"
               TargetFolder: $(buildDirectory)
               CleanTargetFolder: true
