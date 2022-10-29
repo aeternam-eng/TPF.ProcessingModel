@@ -42,7 +42,7 @@ stages:
             displayName: Copy keras model
             inputs:
               SourceFolder: "$(System.ArtifactsDirectory)"
-              Contents: "*.h5"
+              Contents: "*.tflite"
               TargetFolder: $(buildDirectory)
               CleanTargetFolder: true
 
