@@ -81,7 +81,7 @@ stages:
     jobs:
       - job: Deploy
         pool:
-          vmImage: $(vmImageName)
+          name: Azure.Pool.Stronzo
         steps:
           - task: UsePythonVersion@0
             name: pyVersion
