@@ -36,7 +36,7 @@ stages:
               cacheHitVar: 'hasAiModel'
 
           - task: DownloadPackage@1
-            enabled: not(eq(variables.hasAiModel, 'true'))
+            condition: not(eq(variables.hasAiModel, 'true'))
             inputs:
               packageType: 'upack'
               feed: '/e1ea829c-6ca3-4442-9e79-b9d06a6782f7'
