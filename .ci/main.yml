@@ -10,6 +10,7 @@ variables:
   pythonVersion: '3.10'
   buildDirectory: '$(Build.ArtifactStagingDirectory)/build'
   outputZipDir: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+  downloadedPackageDirectory: $(Pipeline.Workspace)/current/$(Build.BuildId).zip
 
 stages:
   - stage: "build"
@@ -70,8 +71,8 @@ stages:
               archiveFile: $(outputZipDir)
               replaceExistingArchive: true
               
-          - upload: $(outputZipDir)
-            displayName: 'Upload package'
+          - publish: $(outputZipDir)
+            displayName: 'Publish artifact'
             artifact: drop
 
   - stage: deploy
@@ -89,10 +90,16 @@ stages:
               versionSpec: $(pythonVersion)
               addToPath: true
               architecture: "x64"
+
+          # Downloads to $(Pipeline.Workspace)/current
+          - download: current
+            artifact: drop
+            displayName: "Download build artifacts"
+          
           - task: AzureWebApp@1
             displayName: 'Deploy Azure Web App : tpf-processingmodel'
             inputs:
               appType: webAppLinux
               azureSubscription: $(azureServiceConnectionId)
               appName: $(webAppName)
-              package: $(outputZipDir)
+              package: $(downloadedPackageDirectory)
