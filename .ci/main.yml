@@ -10,7 +10,7 @@ variables:
   pythonVersion: '3.9'
   buildDirectory: '$(Build.ArtifactStagingDirectory)/build'
   outputZipDir: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
-  downloadedPackageDirectory: $(Pipeline.Workspace)/current/$(Build.BuildId).zip
+  downloadedPackageDirectory: $(Pipeline.Workspace)/drop/$(Build.BuildId).zip
 
 stages:
   - stage: "build"
