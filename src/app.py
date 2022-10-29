@@ -5,7 +5,7 @@ from PIL import Image
 
 app = Flask(__name__)
 
-@app.route('/', methods=['POST'])
+@app.route('/', methods=['GET'])
 def health_check():
     return { "running": True }
 
