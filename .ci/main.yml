@@ -35,7 +35,7 @@ stages:
               feed: '/e1ea829c-6ca3-4442-9e79-b9d06a6782f7'
               view: 
               definition: '7ea22459-192d-42c0-8f4b-5f1c26a7a9cf'
-              version: '1.0.0'
+              version: '1.0.1'
               downloadPath: $(System.ArtifactsDirectory)
 
           - task: CopyFiles@2

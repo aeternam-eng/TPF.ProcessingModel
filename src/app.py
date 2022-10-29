@@ -1,7 +1,7 @@
 from flask import Flask, request
 import numpy as np
 import keras 
-import tensorflow as tf
+import tflite_runtime.interpreter as tflite
 from PIL import Image
 
 app = Flask(__name__)
@@ -12,7 +12,7 @@ def health_check():
 
 @app.route('/api/analysis', methods=['POST'])
 def fire_probability():
-    model = tf.keras.models.load_model('./InceptionV3.h5')
+    model = tflite.Interpreter(model_path='./TPF.tflite')
 
     file = request.files['file']
 
