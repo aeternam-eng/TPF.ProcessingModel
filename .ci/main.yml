@@ -7,7 +7,7 @@ variables:
   azureServiceConnectionId: 'cd6de276-3a5b-458d-8edf-ea0907e684ca'
   webAppName: 'tpf-processingmodel'
 
-  pythonVersion: '3.10'
+  pythonVersion: '3.9'
   buildDirectory: '$(Build.ArtifactStagingDirectory)/build'
   outputZipDir: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
   downloadedPackageDirectory: $(Pipeline.Workspace)/current/$(Build.BuildId).zip
