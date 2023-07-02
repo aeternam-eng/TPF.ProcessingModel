@@ -21,6 +21,11 @@ terraform {
   backend "azurerm" {}
 }
 
+import {
+  to = azurerm_resource_group.rg
+  id = "/subscriptions/2fcfcc58-7a29-4b99-838f-93fa031f18a5/resourceGroups/${var.resource_group_config.name}"
+}
+
 resource "azurerm_resource_group" "rg" {
   name     = var.resource_group_config.name
   location = var.resource_group_config.location
