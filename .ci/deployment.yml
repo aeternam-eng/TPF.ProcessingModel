@@ -1,15 +1,5 @@
 parameters:
-  - name: variables
-    type: object
-  - name: pool
-    type: string
   - name: environment
-    type: string
-    values:
-      - Development
-      - Staging
-      - Production
-  - name: shortEnv
     type: string
     values:
       - dev
@@ -17,11 +7,11 @@ parameters:
       - prd
   - name: dependsOn
     type: string
-  - name: serviceName
+  - name: namespace
+    type: string
+  - name: appName
     type: string
   - name: subscription
-    type: string
-  - name: terraformFilesPath
     type: string
   - name: packageDirectory
     type: string
@@ -31,61 +21,20 @@ stages:
     displayName: ${{ parameters.environment }}
     dependsOn: ${{ parameters.dependsOn }}
     condition: succeeded()
-    pool: ${{ parameters.pool }}
 
     jobs:
+      - template: pipeline-templates/deploy-iac.yml@templates
+        parameters:
+          environment: ${{ parameters.environment }}
+          terraformFilesPath: $(Build.SourcesDirectory)/.iac
+
       - job: Deployment
+        dependsOn: IaC
         displayName: Release ${{ parameters.environment }}
-        variables: ${{ parameters.variables }}
         steps:
           - download: current
             displayName: "Download build artifacts"
             artifact: drop
-
-          - task: ExtractFiles@1
-            displayName: "Extract files"
-            inputs:
-              archiveFilePatterns: "$(Pipeline.Workspace)/drop/${{ parameters.terraformFilesPath }}"
-              destinationFolder: "$(Pipeline.Workspace)/drop/${{ parameters.shortEnv }}"
-
-          - task: replacetokens@3
-            displayName: "Replace tokens in Terraform Files"
-            env:
-              SERVICE_NAME: ${{ parameters.serviceName }}
-              SHORT_ENV: ${{ parameters.shortEnv }}
-            inputs:
-              rootDirectory: "$(Pipeline.Workspace)/drop/${{ parameters.shortEnv }}"
-              actionOnMissing: fail
-              targetFiles: |
-                **/*.tf
-                **/*.tfvars
-                **/*.conf
-
-          - task: TerraformInstaller@1
-            displayName: Install Terraform
-            inputs:
-              terraformVersion: "1.5.2"
-
-          - script: |
-              terraform init -no-color -input=false --backend-config=tf-backend.conf
-            displayName: "Terraform Init"
-            env:
-              ARM_ACCESS_KEY: $(ARM_ACCESS_KEY)
-            workingDirectory: $(Pipeline.Workspace)/drop/${{ parameters.shortEnv }}
-
-          - script: |
-              terraform plan -no-color -input=false -out ${{ parameters.serviceName }}-${{ parameters.shortEnv }}-plan -var-file terraform-shared.tfvars -var-file terraform-${{ parameters.shortEnv }}.tfvars
-            displayName: "Terraform Plan"
-            env:
-              ARM_ACCESS_KEY: $(ARM_ACCESS_KEY)
-            workingDirectory: $(Pipeline.Workspace)/drop/${{ parameters.shortEnv }}
-
-          - script: |
-              terraform apply -no-color -input=false ${{ parameters.serviceName }}-${{ parameters.shortEnv }}-plan
-            displayName: "Terraform Apply"
-            env:
-              ARM_ACCESS_KEY: $(ARM_ACCESS_KEY)
-            workingDirectory: $(Pipeline.Workspace)/drop/${{ parameters.shortEnv }}
 
           - task: AzureRmWebAppDeployment@4
             inputs:
@@ -93,5 +42,5 @@ stages:
               azureSubscription: ${{ parameters.subscription }}
               appType: "webAppLinux"
               DeploymentType: zipDeploy
-              WebAppName: ${{ parameters.serviceName }}-${{ parameters.shortEnv }}
+              WebAppName: ${{ parameters.namespace }}-${{ parameters.appName }}-${{ parameters.environment }}
               packageForLinux: ${{ parameters.packageDirectory }}

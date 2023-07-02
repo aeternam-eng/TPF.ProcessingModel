@@ -3,13 +3,29 @@ trigger:
     include:
       - main
 
+pool: Azure.Pool.Stronzo
+
+resources:
+  repositories:
+    - repository: templates
+      type: git
+      name: Stronzo.TPF.Infrastructure
+
 variables:
-  buildDirectory: '$(Build.ArtifactStagingDirectory)/build'
-  outputDir: $(Build.ArtifactStagingDirectory)
-  downloadedPackageDirectory: $(Pipeline.Workspace)/drop/$(Build.BuildId).zip
-  serviceName: 'stronzo-tapegandofogo-processingmodel'
-  pythonVersion: '3.9'
-  poolName: Azure.Pool.Stronzo
+  - group: Stronzo - General IaC
+  - group: Stronzo - TPF.ProcessingModel - Dev
+  - name: buildDirectory
+    value: $(Build.ArtifactStagingDirectory)/build
+  - name: outputDir
+    value: $(Build.ArtifactStagingDirectory)
+  - name: downloadedPackageDirectory
+    value: $(Pipeline.Workspace)/drop/$(Build.BuildId).zip
+  - name: namespace
+    value: stronzo-tapegandofogo
+  - name: appName
+    value: processingmodel
+  - name: pythonVersion
+    value: '3.9'
 
 stages:
   - stage: "build"
@@ -76,15 +92,6 @@ stages:
               archiveType: zip
               archiveFile: $(outputDir)/$(Build.BuildId).zip
               replaceExistingArchive: true
-          
-          - task: ArchiveFiles@2
-            displayName: "Zip IaC Files"
-            inputs:
-              rootFolderOrFile: "$(Build.SourcesDirectory)/.iac"
-              includeRootFolder: false
-              archiveType: "zip"
-              archiveFile: "$(outputDir)/terraform-files.zip"
-              replaceExistingArchive: false
               
           - publish: $(outputDir)
             displayName: 'Publish artifact'
@@ -92,15 +99,9 @@ stages:
 
   - template: deployment.yml
     parameters:
-      pool: $(poolName)
-      environment: Development
-      shortEnv: dev
+      environment: dev
       dependsOn: Build
-      variables:
-        - group: "Stronzo - TaPegandoFogo"
-        - name: ARM_ACCESS_KEY
-          value: $(IacStorageAccountAccessKey)
-      subscription: "Azure for Students(2fcfcc58-7a29-4b99-838f-93fa031f18a5)"
-      serviceName: $(serviceName)
+      namespace: $(namespace)
+      appName: $(appName)
+      subscription: StronzoDefaultSubscription
       packageDirectory: $(downloadedPackageDirectory)
-      terraformFilesPath: terraform-files.zip

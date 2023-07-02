@@ -1,13 +1,7 @@
+// All values are injected through pipeline
 provider "azurerm" {
-  subscription_id            = var.azurerm_provider_config.subscription_id
-  client_id                  = var.azurerm_provider_config.client_id
-  client_secret              = var.azurerm_provider_config.client_secret
-  tenant_id                  = var.azurerm_provider_config.tenant_id
-  skip_provider_registration = true
-
   features {}
 }
-
 
 terraform {
   required_providers {
@@ -17,32 +11,29 @@ terraform {
     }
   }
 
-  // The storage account access key should be injected through pipeline env variables
+  // All values are injected through pipeline
   backend "azurerm" {}
 }
 
-import {
-  to = azurerm_resource_group.rg
-  id = "/subscriptions/2fcfcc58-7a29-4b99-838f-93fa031f18a5/resourceGroups/rg-stronzo-tapegandofogo-dev"
-}
-
-resource "azurerm_resource_group" "rg" {
-  name     = var.resource_group_config.name
-  location = var.resource_group_config.location
+module "conventions" {
+  source      = "https://sastronzo.blob.core.windows.net/terraform-modules/naming-conventions.zip"
+  environment = var.resource_config.environment
+  namespace   = var.resource_config.namespace
+  appName     = var.resource_config.name
 }
 
 resource "azurerm_service_plan" "appserviceplan" {
-  name                = "asp-${var.service_config.name}-${var.service_config.short_env}"
-  location            = "eastus"
-  resource_group_name = azurerm_resource_group.rg.name
+  name                = module.conventions.app_config.app_service_plan_name
+  location            = var.resource_config.location
+  resource_group_name = module.conventions.resource_group_name
   os_type             = var.appserviceplan_config.os_type
   sku_name            = var.appserviceplan_config.sku_name
 }
 
 resource "azurerm_linux_web_app" "webapp" {
-  name                = "${var.service_config.name}-${var.service_config.short_env}"
-  location            = "eastus"
-  resource_group_name = azurerm_resource_group.rg.name
+  name                = module.conventions.app_config.web_app_name
+  location            = azurerm_service_plan.appserviceplan.location
+  resource_group_name = module.conventions.resource_group_name
   service_plan_id     = azurerm_service_plan.appserviceplan.id
   https_only          = true
 
