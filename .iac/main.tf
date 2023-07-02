@@ -33,7 +33,7 @@ resource "azurerm_resource_group" "rg" {
 
 resource "azurerm_service_plan" "appserviceplan" {
   name                = "asp-${var.service_config.name}-${var.service_config.short_env}"
-  location            = "us-east"
+  location            = "eastus"
   resource_group_name = azurerm_resource_group.rg.name
   os_type             = var.appserviceplan_config.os_type
   sku_name            = var.appserviceplan_config.sku_name
@@ -41,7 +41,7 @@ resource "azurerm_service_plan" "appserviceplan" {
 
 resource "azurerm_linux_web_app" "webapp" {
   name                = "${var.service_config.name}-${var.service_config.short_env}"
-  location            = "us-east"
+  location            = "eastus"
   resource_group_name = azurerm_resource_group.rg.name
   service_plan_id     = azurerm_service_plan.appserviceplan.id
   https_only          = true
