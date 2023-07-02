@@ -4,12 +4,12 @@ trigger:
       - main
 
 variables:
-  azureServiceConnectionId: 'cd6de276-3a5b-458d-8edf-ea0907e684ca'
-  webAppName: 'tpf-processingmodel'
-  pythonVersion: '3.9'
   buildDirectory: '$(Build.ArtifactStagingDirectory)/build'
-  outputZipDir: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+  outputDir: $(Build.ArtifactStagingDirectory)
   downloadedPackageDirectory: $(Pipeline.Workspace)/drop/$(Build.BuildId).zip
+  serviceName: 'stronzo-tapegandofogo-processingmodel'
+  pythonVersion: '3.9'
+  poolName: Azure.Pool.Stronzo
 
 stages:
   - stage: "build"
@@ -74,39 +74,33 @@ stages:
               rootFolderOrFile: $(buildDirectory)
               includeRootFolder: false
               archiveType: zip
-              archiveFile: $(outputZipDir)
+              archiveFile: $(outputDir)/$(Build.BuildId).zip
               replaceExistingArchive: true
+          
+          - task: ArchiveFiles@2
+            displayName: "Zip IaC Files"
+            inputs:
+              rootFolderOrFile: "$(Build.SourcesDirectory)/.iac"
+              includeRootFolder: false
+              archiveType: "zip"
+              archiveFile: "$(outputDir)/terraform-files.zip"
+              replaceExistingArchive: false
               
           - publish: $(outputZipDir)
             displayName: 'Publish artifact'
             artifact: drop
 
-  - stage: deploy
-    displayName: 'Deploy Web App'
-    dependsOn: Build
-    condition: succeeded()
-    jobs:
-      - job: Deploy
-        pool:
-          name: Azure.Pool.Stronzo
-        steps:
-          - task: UsePythonVersion@0
-            name: pyVersion
-            inputs:
-              versionSpec: $(pythonVersion)
-              addToPath: true
-              architecture: "x64"
-
-          # Downloads to $(Pipeline.Workspace)/current
-          - download: current
-            artifact: drop
-            displayName: "Download build artifacts"
-          
-          - task: AzureRmWebAppDeployment@4
-            inputs:
-              ConnectionType: AzureRM
-              azureSubscription: 'Azure para Estudantes (26956325-be9b-439d-b44f-c8a6540154e2)'
-              appType: 'webAppLinux'
-              DeploymentType: zipDeploy
-              WebAppName: 'stronzo-tapegandofogo-processingmodel-dev'
-              packageForLinux: '$(downloadedPackageDirectory)'
+  - template: deployment.yml
+    parameters:
+      pool: $(poolName)
+      environment: Development
+      shortEnv: dev
+      dependsOn: Build
+      variables:
+        - group: "Stronzo - TaPegandoFogo"
+        - name: ARM_ACCESS_KEY
+          value: $(IacStorageAccountAccessKey)
+      subscription: "Azure for Students(2fcfcc58-7a29-4b99-838f-93fa031f18a5)"
+      serviceName: $(serviceName)
+      packageDirectory: $(downloadedPackageDirectory)
+      terraformFilesPath: terraform-files.zip
