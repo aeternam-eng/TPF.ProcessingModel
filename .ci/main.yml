@@ -86,7 +86,7 @@ stages:
               archiveFile: "$(outputDir)/terraform-files.zip"
               replaceExistingArchive: false
               
-          - publish: $(outputZipDir)
+          - publish: $(outputDir)
             displayName: 'Publish artifact'
             artifact: drop
 
