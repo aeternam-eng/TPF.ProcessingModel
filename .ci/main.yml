@@ -48,7 +48,7 @@ stages:
 
           - task: Cache@2
             inputs:
-              key: 'ai-model-1-0-2'
+              key: "ai-model-$(aimodelVersion)"
               path: '$(System.ArtifactsDirectory)/model'
               cacheHitVar: 'hasAiModel'
 
