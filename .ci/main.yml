@@ -26,6 +26,8 @@ variables:
     value: processingmodel
   - name: pythonVersion
     value: '3.9'
+  - name: aimodelVersion
+    value: '1.0.2'
 
 stages:
   - stage: "build"
@@ -46,7 +48,7 @@ stages:
 
           - task: Cache@2
             inputs:
-              key: 'ai-model'
+              key: 'ai-model-$(aimodelVersion)'
               path: '$(System.ArtifactsDirectory)/model'
               cacheHitVar: 'hasAiModel'
 
@@ -57,7 +59,7 @@ stages:
               feed: '/e1ea829c-6ca3-4442-9e79-b9d06a6782f7'
               view: 
               definition: '7ea22459-192d-42c0-8f4b-5f1c26a7a9cf'
-              version: '1.0.1'
+              version: '$(aimodelVersion)'
               downloadPath: $(System.ArtifactsDirectory)/model
 
           - task: CopyFiles@2
