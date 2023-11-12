@@ -45,23 +45,7 @@ stages:
               versionSpec: $(pythonVersion)
               addToPath: true
               architecture: "x64"
-
-          - task: Cache@2
-            inputs:
-              key: '"ai-model-$(aimodelVersion)"'
-              path: '$(System.ArtifactsDirectory)/model'
-              cacheHitVar: 'hasAiModel'
-
-          - task: DownloadPackage@1
-            condition: not(eq(variables.hasAiModel, 'true'))
-            inputs:
-              packageType: 'upack'
-              feed: '/e1ea829c-6ca3-4442-9e79-b9d06a6782f7'
-              view: 
-              definition: '7ea22459-192d-42c0-8f4b-5f1c26a7a9cf'
-              version: '$(aimodelVersion)'
-              downloadPath: $(System.ArtifactsDirectory)/model
-
+              
           - task: CopyFiles@2
             displayName: Copy keras model
             inputs:
