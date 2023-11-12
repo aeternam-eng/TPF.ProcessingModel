@@ -65,8 +65,8 @@ stages:
           - task: CopyFiles@2
             displayName: Copy keras model
             inputs:
-              SourceFolder: "$(System.ArtifactsDirectory)/model"
-              Contents: "*.tflite"
+              SourceFolder: "$(Build.SourcesDirectory)/models"
+              Contents: "*"
               TargetFolder: $(buildDirectory)
               CleanTargetFolder: true
 

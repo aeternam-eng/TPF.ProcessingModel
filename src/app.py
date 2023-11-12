@@ -28,7 +28,6 @@ def fire_probability():
 
         return probability[0][1]
 
-
     interpreter = tflite.Interpreter(model_path='./TPF.tflite')
     interpreter.allocate_tensors()
 
